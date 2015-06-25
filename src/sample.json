@@ -1,0 +1,40 @@
+{
+	"mount": [
+		{
+			"baseroute": "admin",
+			"fn": "sample@admin"
+		}
+	],
+	"common": {
+		"before": [
+			{
+				"methods": "GET|POST",
+				"pattern": "/admin/(.*)",
+				"fn": "sample@auth"
+			}
+		],
+		"match": [
+			{
+				"methods": "GET",
+				"pattern": "/hello",
+				"fn": "sample@hello"
+			}
+		]
+	},
+	"method": {
+		"get" : [
+			{
+				"pattern": "/world",
+				"fn": "sample@world"
+			},
+			{
+				"pattern": "/new",
+				"fn": "sample@n"
+			}
+		]
+	},
+	"global": {
+		"set404": "sample@notfound",
+		"run": "sample@success"
+	}
+}

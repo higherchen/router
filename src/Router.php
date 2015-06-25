@@ -44,41 +44,50 @@ class Router {
 	 * @param string $filepath
 	 * @param object|callable anonymous $fn is not allowed in the ini file
 	 */
-	public static function setByIniFile($filepath) {
-		$explode_str = '.';
-		$escape_char = "'";
-		// load ini file the normal way
-		$data = parse_ini_file($filepath, true);
-		foreach ($data as $section_key => $section) {
-			// loop inside the section
-			foreach ($section as $key => $value) {
-				if (strpos($key, $explode_str)) {
-					if (substr($key, 0, 1) !== $escape_char) {
-						// key has a dot. Explode on it, then parse each subkeys
-						// and set value at the right place thanks to references
-						$sub_keys = explode($explode_str, $key);
-						$subs = &$data[$section_key];
-						foreach ($sub_keys as $sub_key) {
-							if (!isset($subs[$sub_key])) {
-								$subs[$sub_key] = [];
+	public static function setByFile($filepath, $filetype = 'ini') {
+		if ($filetype == 'ini') {
+			$explode_str = '.';
+			$escape_char = "'";
+			// load ini file the normal way
+			$data = parse_ini_file($filepath, true);
+			foreach ($data as $section_key => $section) {
+				// loop inside the section
+				foreach ($section as $key => $value) {
+					if (strpos($key, $explode_str)) {
+						if (substr($key, 0, 1) !== $escape_char) {
+							// key has a dot. Explode on it, then parse each subkeys
+							// and set value at the right place thanks to references
+							$sub_keys = explode($explode_str, $key);
+							$subs = &$data[$section_key];
+							foreach ($sub_keys as $sub_key) {
+								if (!isset($subs[$sub_key])) {
+									$subs[$sub_key] = [];
+								}
+								$subs = &$subs[$sub_key];
 							}
-							$subs = &$subs[$sub_key];
+							// set the value at the right place
+							$subs = $value;
+							// unset the dotted key, we don't need it anymore
+							unset($data[$section_key][$key]);
 						}
-						// set the value at the right place
-						$subs = $value;
-						// unset the dotted key, we don't need it anymore
-						unset($data[$section_key][$key]);
-					}
-					// we have escaped the key, so we keep dots as they are
-					else {
-						$new_key = trim($key, $escape_char);
-						$data[$section_key][$new_key] = $value;
-						unset($data[$section_key][$key]);
+						// we have escaped the key, so we keep dots as they are
+						else {
+							$new_key = trim($key, $escape_char);
+							$data[$section_key][$new_key] = $value;
+							unset($data[$section_key][$key]);
+						}
 					}
 				}
 			}
+		} else if ($filetype == 'json') {
+			$data = json_decode(file_get_contents($filepath), true);
 		}
+		if ($data) {
+			self::setByArray($data);
+		}
+	}
 
+	private static function setByArray($data) {
 		if (isset($data['mount'])) {
 			foreach ($data['mount'] as $item) {
 				self::mount($item['baseroute'], $item['fn']);
@@ -98,12 +107,12 @@ class Router {
 				}
 			}
 		}
-		if (isset($data['set404'])) {
-			self::set404($data['set404']['fn']);
-		}
 
-		if (isset($data['run'])) {
-			self::run($data['run']['fn']);
+		if (isset($data['global']['set404'])) {
+			self::set404($data['global']['set404']);
+		}
+		if (isset($data['global']['run'])) {
+			self::run($data['global']['run']);
 		} else {
 			self::run();
 		}

@@ -28,7 +28,8 @@ use higherchen\router\Router;
 // 	echo "Successfully worked! ";
 // });
 
-Router::setByIniFile(__DIR__ . '/../vendor/higherchen/router/src/sample.ini');
+// Router::setByFile(__DIR__ . '/sample.ini');
+Router::setByFile(__DIR__ . '/sample.json', 'json');
 
 class sample {
 	function auth() {
