@@ -87,7 +87,7 @@ class Router {
 		}
 	}
 
-	private static function setByArray($data) {
+	public static function setByArray($data) {
 		if (isset($data['mount'])) {
 			foreach ($data['mount'] as $item) {
 				self::mount($item['baseroute'], $item['fn']);
